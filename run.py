@@ -26,7 +26,7 @@ async def send_dad_joke(response, channel):
     await channel.send(f'Hi, {response}. I\'m goober')
 
 
-def handle_dad_joke(cleaned, lower, message):
+async def handle_dad_joke(cleaned, lower, message):
     if " i'm " in cleaned or cleaned[:4] == "i'm ":
         index = lower.find('i\'m') + 3
         response = message.content[index:]
@@ -89,7 +89,7 @@ async def on_message(message):
 
     user_roles = [i.id for i in message.author.roles]
     if int(os.environ['NO_DAD_JOKE_ROLE']) not in user_roles:
-        handle_dad_joke(cleaned, lower, message)
+        await handle_dad_joke(cleaned, lower, message)
 
 
 eprint('args:', sys.argv)
