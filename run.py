@@ -7,50 +7,26 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
 intents = discord.Intents.default()
 intents.message_content = True
 
 activity = discord.Activity(type=discord.ActivityType.watching, name='you >:)')
 client = discord.Client(intents=intents, activity=activity)
 
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
 async def send_dad_joke(response, channel):
     if response.lower() == 'goober':
-        await channel.send(f'No I am goober >:(')
+        await channel.send('No I am goober >:(')
         return
     # await channel.send(f'Hi, {response}. I\'m ' + client.user.name)
     await channel.send(f'Hi, {response}. I\'m goober')
 
-@client.event
-async def on_ready():
-    channel = client.get_channel(1092119393246384151)
-    await channel.send('helo')
 
-@client.event
-async def on_message(message):
-    # don't respond to self
-    if message.author == client.user:
-        return
-
-    # make everything lower case and remove duplicate whitespace
-    lower = message.content.lower()
-    lower = lower.replace(chr(0x2018), '\'').replace(chr(0x2019), '\'')
-    cleaned = ' '.join(lower.split())
-
-    # cat stuff
-    if 'cat' in cleaned:
-        if message.author.id == 450923244346802176:
-            await message.channel.send('*insert insults here*')
-            return
-        await message.channel.send('meow')
-        return
-    if 'meow' in cleaned:
-        await message.channel.send('Hey, that\'s my line :(')
-        return
-
-    # dad jokes
+def handle_dad_joke(cleaned, lower, message):
     if " i'm " in cleaned or cleaned[:4] == "i'm ":
         index = lower.find('i\'m') + 3
         response = message.content[index:]
@@ -81,6 +57,40 @@ async def on_message(message):
             response = message.content[index:]
             await send_dad_joke(response, message.channel)
         return
+
+
+@client.event
+async def on_ready():
+    channel = client.get_channel(1092119393246384151)
+    await channel.send('helo')
+
+
+@client.event
+async def on_message(message):
+    # don't respond to self
+    if message.author == client.user:
+        return
+
+    # make everything lower case and remove duplicate whitespace
+    lower = message.content.lower()
+    lower = lower.replace(chr(0x2018), '\'').replace(chr(0x2019), '\'')
+    cleaned = ' '.join(lower.split())
+
+    # cat stuff
+    if 'cat' in cleaned:
+        if message.author.id == 450923244346802176:
+            await message.channel.send('*insert insults here*')
+            return
+        await message.channel.send('meow')
+        return
+    if 'meow' in cleaned:
+        await message.channel.send('Hey, that\'s my line :(')
+        return
+
+    user_roles = [i.id for i in message.author.roles]
+    if int(os.environ['NO_DAD_JOKE_ROLE']) not in user_roles:
+        handle_dad_joke(cleaned, lower, message)
+
 
 eprint('args:', sys.argv)
 client.run(os.environ['DISCORD_KEY'])
